@@ -199,6 +199,24 @@ describe('PivotPage', () => {
     expect(subtotalElements.length).toBeGreaterThan(0);
   });
 
+  it('shows toggle buttons on parent rows for expand/collapse', async () => {
+    await login('demo', '123456');
+
+    renderRoute('/pivot/orders');
+
+    fireEvent.click(await screen.findByRole('button', { name: '添加 发货区域 到 行' }));
+    fireEvent.click(screen.getByRole('button', { name: '添加 省份 到 行' }));
+    fireEvent.click(screen.getByRole('button', { name: '添加 订单年份 到 列' }));
+    fireEvent.click(screen.getByRole('button', { name: '添加 销售额 到 度量' }));
+    fireEvent.click(screen.getByRole('button', { name: '执行查询' }));
+
+    await screen.findByRole('table');
+
+    // Expand toggle buttons should exist on parent rows
+    const toggleButtons = screen.queryAllByRole('button', { name: '[+]' });
+    expect(toggleButtons.length).toBeGreaterThan(0);
+  });
+
   it('exports pivot result to Excel', async () => {
     await login('demo', '123456');
 

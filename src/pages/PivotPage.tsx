@@ -46,6 +46,7 @@ function PivotPage() {
   const isQueryReady = usePivotStore((state) => state.isQueryReady(resolvedSourceId));
   const hasLayoutContent = Object.values(sourceState.layout).some((zoneItems) => zoneItems.length > 0);
   const setFilterValues = usePivotStore((state) => state.setFilterValues);
+  const setExpandedKeys = usePivotStore((state) => state.setExpandedKeys);
   const filterValues = sourceState.filterValues;
 
   const resolvedZoneFields = zoneDefinitions.map((zone) => ({
@@ -135,6 +136,13 @@ function PivotPage() {
             <ResultTable
               result={queryResult}
               measureLabel={sourceState.layout.measures[0] ?? ''}
+              expandedKeys={sourceState.expandedKeys}
+              onToggleExpand={(key) => {
+                const next = sourceState.expandedKeys.includes(key)
+                  ? sourceState.expandedKeys.filter((k) => k !== key)
+                  : [...sourceState.expandedKeys, key];
+                setExpandedKeys(resolvedSourceId, next);
+              }}
             />
           </section>
         ) : null}
