@@ -120,7 +120,7 @@ function PivotPage() {
           <section className="pivot-panel pivot-layout-board" aria-labelledby="pivot-layout-board-title">
             <div className="pivot-panel__header">
               <h2 id="pivot-layout-board-title">布局区</h2>
-              <p>先用按钮完成字段放置，拖拽交互会在后续任务中补齐。</p>
+              <p>拖拽字段或使用按钮将字段放入布局区。</p>
             </div>
             <div className="pivot-layout-board__grid">
               {resolvedZoneFields.map((zone) => (

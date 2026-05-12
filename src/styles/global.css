@@ -186,6 +186,11 @@ button {
   border-radius: 999px;
   border: 1px solid rgba(160, 201, 220, 0.18);
   background: rgba(255, 255, 255, 0.04);
+  cursor: grab;
+}
+
+.pivot-field-chip:active {
+  cursor: grabbing;
 }
 
 .pivot-field-chip--measure {
@@ -401,15 +406,6 @@ button {
   to {
     transform: rotate(360deg);
   }
-}
-
-/* Field chip draggable cursor */
-.pivot-field-chip {
-  cursor: grab;
-}
-
-.pivot-field-chip:active {
-  cursor: grabbing;
 }
 
 /* Primary button emphasis */

@@ -1,3 +1,4 @@
+import { Fragment } from 'react';
 import type { PivotResult } from '../../utils/pivotEngine';
 
 type ResultTableProps = {
@@ -23,7 +24,7 @@ function groupRows(rowHeaders: string[][]) {
       groups.push({ parentLabel: rh[0], detailRows: [rh], subtotalRow: null });
     } else {
       const isSubtotal = rh[rh.length - 1] === '合计';
-      const parentKey = isSubtotal ? rh.slice(0, -1).join('|') : rh.slice(0, 1)[0];
+      const parentKey = rh.slice(0, -1).join('|');
 
       if (!seenParents.has(parentKey)) {
         seenParents.add(parentKey);
@@ -68,7 +69,7 @@ export default function ResultTable({ result, measureLabel, expandedKeys, onTogg
           groups.map((group) => {
             const isExpanded = expandedKeys.includes(group.parentLabel);
             return (
-              <Rows key={group.parentLabel}>
+              <Fragment key={group.parentLabel}>
                 {/* Parent row with toggle */}
                 <tr>
                   <th>
@@ -116,7 +117,7 @@ export default function ResultTable({ result, measureLabel, expandedKeys, onTogg
                       ))}
                     </tr>
                   ))}
-              </Rows>
+              </Fragment>
             );
           })
         ) : (
@@ -133,8 +134,4 @@ export default function ResultTable({ result, measureLabel, expandedKeys, onTogg
       </tbody>
     </table>
   );
-}
-
-function Rows({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
 }
