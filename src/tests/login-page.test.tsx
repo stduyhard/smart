@@ -1,33 +1,52 @@
 import { act } from 'react';
-import { screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { fireEvent, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { bootstrapApp } from '../main';
+import { logout } from '../services/auth';
 
-describe('App bootstrap', () => {
+function renderRoute(pathname: string) {
+  window.history.pushState({}, '', pathname);
+  document.body.innerHTML = '<div id="root"></div>';
+
+  act(() => {
+    bootstrapApp(document.getElementById('root')!);
+  });
+}
+
+describe('LoginPage', () => {
   beforeEach(() => {
-    document.body.innerHTML = '<div id="root"></div>';
-    vi.resetModules();
+    logout();
   });
 
-  it('renders the default login page heading through the bootstrap helper', () => {
-    act(() => {
-      bootstrapApp(document.getElementById('root')!);
+  it('logs in with demo credentials and lands on the data-source heading', async () => {
+    renderRoute('/');
+
+    fireEvent.change(screen.getByLabelText('账号'), {
+      target: { value: 'demo' },
     });
+    fireEvent.change(screen.getByLabelText('密码'), {
+      target: { value: '123456' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '登录' }));
 
     expect(
-      screen.getByRole('heading', { level: 1, name: '透视分析' }),
+      await screen.findByRole('heading', { level: 1, name: '选择数据源' }),
     ).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/sources');
   });
 
-  it('mounts the default login page from the main entry point', async () => {
-    await act(async () => {
-      await import('../main');
-    });
+  it('shows an error when the credentials are invalid', async () => {
+    renderRoute('/');
 
-    await waitFor(() => {
-      expect(
-        screen.getByRole('heading', { level: 1, name: '透视分析' }),
-      ).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('账号'), {
+      target: { value: 'demo' },
     });
+    fireEvent.change(screen.getByLabelText('密码'), {
+      target: { value: 'bad-password' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '登录' }));
+
+    expect(await screen.findByText('账号或密码错误')).toBeInTheDocument();
+    expect(window.location.pathname).toBe('/');
   });
 });
