@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import AppShell from '../components/layout/AppShell';
 import DragProvider from '../components/pivot/DragProvider';
 import EmptyState from '../components/pivot/EmptyState';
 import FieldPanel from '../components/pivot/FieldPanel';
 import LayoutZone from '../components/pivot/LayoutZone';
+import LoadingState from '../components/pivot/LoadingState';
 import SettingsPanel from '../components/pivot/SettingsPanel';
-import Toolbar from '../components/pivot/Toolbar';
 import { getPivotSourceById, type PivotSourceId } from '../data/orderModel';
 import { isPivotSourceAvailable } from '../services/dataSources';
+import { executePivotQuery } from '../services/pivot';
 import { usePivotStore } from '../store/pivotStore';
 
 const zoneDefinitions = [
@@ -20,6 +22,7 @@ const zoneDefinitions = [
 function PivotPage() {
   const { sourceId } = useParams();
   const source = sourceId ? getPivotSourceById(sourceId) : null;
+  const [isQueryRunning, setIsQueryRunning] = useState(false);
 
   if (!sourceId || !source || !isPivotSourceAvailable(sourceId)) {
     return (
@@ -34,6 +37,8 @@ function PivotPage() {
   const resolvedSourceId = sourceId as PivotSourceId;
   const sourceState = usePivotStore((state) => state.getSourceState(resolvedSourceId));
   const resetLayout = usePivotStore((state) => state.resetLayout);
+  const addFieldToZone = usePivotStore((state) => state.addFieldToZone);
+  const isQueryReady = usePivotStore((state) => state.isQueryReady(resolvedSourceId));
   const hasLayoutContent = Object.values(sourceState.layout).some((zoneItems) => zoneItems.length > 0);
 
   const resolvedZoneFields = zoneDefinitions.map((zone) => ({
@@ -43,6 +48,23 @@ function PivotPage() {
       .filter((field) => field !== null),
   }));
 
+  async function handleExecuteQuery() {
+    if (!isQueryReady || isQueryRunning) {
+      return;
+    }
+
+    setIsQueryRunning(true);
+
+    try {
+      await executePivotQuery({
+        sourceId: resolvedSourceId,
+        layout: sourceState.layout,
+      });
+    } finally {
+      setIsQueryRunning(false);
+    }
+  }
+
   return (
     <DragProvider>
       <main className="pivot-page">
@@ -51,16 +73,29 @@ function PivotPage() {
           <h1>透视分析: {resolvedSourceId}</h1>
           <p>{source?.description}</p>
         </section>
-        <Toolbar
-          sourceName={source.name}
-          onReset={() => resetLayout(resolvedSourceId)}
-        />
+        <header className="pivot-toolbar">
+          <div>
+            <p className="pivot-toolbar__eyebrow">当前数据源</p>
+            <strong>{source.name}</strong>
+          </div>
+          <div className="pivot-toolbar__actions">
+            <button type="button" onClick={() => resetLayout(resolvedSourceId)}>
+              重置布局
+            </button>
+            <button type="button" onClick={handleExecuteQuery} disabled={!isQueryReady || isQueryRunning}>
+              {isQueryRunning ? '执行查询中...' : '执行查询'}
+            </button>
+          </div>
+        </header>
         <section className="pivot-page__workspace">
-          <FieldPanel source={source} />
+          <FieldPanel
+            source={source}
+            onPlaceField={(fieldKey, zone) => addFieldToZone(resolvedSourceId, fieldKey, zone)}
+          />
           <section className="pivot-panel pivot-layout-board" aria-labelledby="pivot-layout-board-title">
             <div className="pivot-panel__header">
               <h2 id="pivot-layout-board-title">布局区</h2>
-              <p>拖拽行为会在后续任务中补齐，本任务先搭好分析壳层。</p>
+              <p>先用按钮完成字段放置，拖拽交互会在后续任务中补齐。</p>
             </div>
             <div className="pivot-layout-board__grid">
               {resolvedZoneFields.map((zone) => (
@@ -72,6 +107,7 @@ function PivotPage() {
                 />
               ))}
             </div>
+            {isQueryRunning ? <LoadingState /> : null}
             <EmptyState visible={!hasLayoutContent} />
           </section>
           <SettingsPanel />

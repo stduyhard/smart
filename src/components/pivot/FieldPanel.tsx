@@ -3,11 +3,35 @@ import FieldChip from './FieldChip';
 
 type FieldPanelProps = {
   source: PivotSourceModel;
+  onPlaceField: (fieldKey: string, zone: 'rows' | 'columns' | 'measures' | 'filters') => void;
 };
 
-function FieldPanel({ source }: FieldPanelProps) {
+const zoneLabels = {
+  rows: '行',
+  columns: '列',
+  measures: '度量',
+  filters: '过滤条件',
+} as const;
+
+function FieldPanel({ source, onPlaceField }: FieldPanelProps) {
   const dimensionFields = source.fields.filter((field) => field.type === 'dimension');
   const measureFields = source.fields.filter((field) => field.type === 'measure');
+
+  function renderFieldActions(field: PivotSourceModel['fields'][number]) {
+    return (
+      <div className="pivot-field-panel__actions">
+        {field.allowedZones.map((zone) => (
+          <button
+            key={`${field.key}-${zone}`}
+            type="button"
+            onClick={() => onPlaceField(field.key, zone)}
+          >
+            添加 {field.label} 到 {zoneLabels[zone]}
+          </button>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <section className="pivot-panel pivot-field-panel" aria-labelledby="pivot-field-panel-title">
@@ -19,7 +43,10 @@ function FieldPanel({ source }: FieldPanelProps) {
         <h3>维度</h3>
         <div className="pivot-field-panel__chips">
           {dimensionFields.map((field) => (
-            <FieldChip key={field.key} label={field.label} type={field.type} />
+            <div key={field.key} className="pivot-field-panel__field">
+              <FieldChip label={field.label} type={field.type} />
+              {renderFieldActions(field)}
+            </div>
           ))}
         </div>
       </div>
@@ -27,7 +54,10 @@ function FieldPanel({ source }: FieldPanelProps) {
         <h3>度量</h3>
         <div className="pivot-field-panel__chips">
           {measureFields.map((field) => (
-            <FieldChip key={field.key} label={field.label} type={field.type} />
+            <div key={field.key} className="pivot-field-panel__field">
+              <FieldChip label={field.label} type={field.type} />
+              {renderFieldActions(field)}
+            </div>
           ))}
         </div>
       </div>

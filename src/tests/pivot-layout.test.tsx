@@ -122,6 +122,21 @@ describe('usePivotStore', () => {
     ]);
   });
 
+  it('treats a layout as query-ready only after a measure and a grouping/filter exist', () => {
+    act(() => {
+      const store = usePivotStore.getState();
+      store.addFieldToZone(ordersSourceId, '销售额', 'measures');
+    });
+
+    expect(usePivotStore.getState().isQueryReady(ordersSourceId)).toBe(false);
+
+    act(() => {
+      usePivotStore.getState().addFieldToZone(ordersSourceId, '发货区域', 'rows');
+    });
+
+    expect(usePivotStore.getState().isQueryReady(ordersSourceId)).toBe(true);
+  });
+
   it('keeps fixture fields aligned with business row keys', () => {
     expect(orderFields.map((field) => field.key)).toEqual([
       '发货区域',

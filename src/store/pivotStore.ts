@@ -15,6 +15,7 @@ export interface PivotState {
   sourceStates: Record<string, PivotSourceState>;
   addFieldToZone: (sourceId: PivotSourceId | string, field: PivotFieldKey | string, zone: PivotZone) => void;
   getSourceState: (sourceId: string) => PivotSourceState;
+  isQueryReady: (sourceId: string) => boolean;
   resetLayout: (sourceId: string) => void;
   setExpandedKeys: (sourceId: string, expandedKeys: string[]) => void;
 }
@@ -88,6 +89,14 @@ function getFieldDefinition(sourceId: string, field: string) {
   return sourceDefinition?.fields.find((sourceField) => sourceField.key === field) ?? null;
 }
 
+function isLayoutQueryReady(layout: PivotLayout<PivotFieldKey>) {
+  const hasMeasure = layout.measures.length > 0;
+  const hasGroupingOrFilter =
+    layout.rows.length > 0 || layout.columns.length > 0 || layout.filters.length > 0;
+
+  return hasMeasure && hasGroupingOrFilter;
+}
+
 function createInitialState(): PivotState {
   return {
     sourceStates: {},
@@ -136,6 +145,10 @@ function createInitialState(): PivotState {
     },
     getSourceState: (sourceId) => {
       return usePivotStore.getState().sourceStates[sourceId] ?? defaultSourceState;
+    },
+    isQueryReady: (sourceId) => {
+      const sourceState = usePivotStore.getState().getSourceState(sourceId);
+      return isLayoutQueryReady(sourceState.layout);
     },
     resetLayout: (sourceId) => {
       usePivotStore.setState({
