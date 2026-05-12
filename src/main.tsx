@@ -3,8 +3,16 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/global.css';
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+export function bootstrapApp(container: Element) {
+  ReactDOM.createRoot(container).render(
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>,
+  );
+}
+
+const rootElement = document.getElementById('root');
+
+if (rootElement) {
+  bootstrapApp(rootElement);
+}
