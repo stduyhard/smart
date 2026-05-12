@@ -1,4 +1,4 @@
-import type { PivotField, PivotSourceDefinition } from '../types/pivot';
+import type { PivotField, PivotSourceModel } from '../types/pivot';
 
 export interface OrderRow {
   发货区域: string;
@@ -147,9 +147,10 @@ export const orderModel = {
   id: 'orders',
   name: '订单模型',
   description: '适合从订单、销售额和区域维度进入透视分析。',
+  selectable: true,
   fields: orderFields,
   rows: orderRows,
-} as const satisfies PivotSourceDefinition<'orders', OrderFieldKey, OrderRow>;
+} as const satisfies PivotSourceModel<'orders', OrderFieldKey, OrderRow>;
 
 export const customerRows: CustomerRow[] = [
   {
@@ -169,10 +170,11 @@ export const customerRows: CustomerRow[] = [
 export const customerModel = {
   id: 'customers',
   name: '客户模型',
-  description: '用于验证不同数据源的字段约束和布局规则。',
+  description: '展示用数据源，后续任务会补充分析入口。',
+  selectable: false,
   fields: customerFields,
   rows: customerRows,
-} as const satisfies PivotSourceDefinition<'customers', CustomerFieldKey, CustomerRow>;
+} as const satisfies PivotSourceModel<'customers', CustomerFieldKey, CustomerRow>;
 
 export const pivotSourceRegistry = {
   [orderModel.id]: orderModel,
@@ -182,3 +184,13 @@ export const pivotSourceRegistry = {
 export type PivotSourceRegistry = typeof pivotSourceRegistry;
 export type PivotSourceId = keyof PivotSourceRegistry & string;
 export type PivotFieldKey = PivotSourceRegistry[PivotSourceId]['fields'][number]['key'];
+
+export const pivotSources = Object.values(pivotSourceRegistry);
+
+export function getPivotSourceById(sourceId: string) {
+  return pivotSourceRegistry[sourceId as PivotSourceId] ?? null;
+}
+
+export function listPivotSources() {
+  return pivotSources;
+}

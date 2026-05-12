@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import {
-  pivotSourceRegistry,
+  getPivotSourceById,
   type PivotFieldKey,
   type PivotSourceId,
 } from '../data/orderModel';
@@ -79,7 +79,7 @@ function removeFieldFromLayout(
 }
 
 function getSourceDefinition(sourceId: string): PivotSourceDefinition | null {
-  return pivotSourceRegistry[sourceId as PivotSourceId] ?? null;
+  return getPivotSourceById(sourceId);
 }
 
 function getFieldDefinition(sourceId: string, field: string) {

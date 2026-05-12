@@ -31,3 +31,11 @@ export interface PivotSourceDefinition<
   fields: readonly PivotField<FieldKey>[];
   rows: Row[];
 }
+
+export interface PivotSourceModel<
+  SourceId extends string = string,
+  FieldKey extends string = string,
+  Row extends object = object,
+> extends PivotSourceDefinition<SourceId, FieldKey, Row> {
+  selectable: boolean;
+}

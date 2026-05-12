@@ -1,8 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { login, logout } from '../services/auth';
 import { routerConfig } from '../router';
+import { usePivotStore } from '../store/pivotStore';
 
 function renderRoute(pathname: string) {
   const router = createMemoryRouter(routerConfig, {
@@ -17,6 +18,12 @@ function renderRoute(pathname: string) {
 describe('PivotPage', () => {
   beforeEach(() => {
     logout();
+    act(() => {
+      usePivotStore.setState((state) => ({
+        ...state,
+        sourceStates: {},
+      }));
+    });
   });
 
   it('renders the pivot shell with field panel, zones, settings, and empty state', async () => {
@@ -39,5 +46,21 @@ describe('PivotPage', () => {
     expect(screen.getByRole('heading', { level: 2, name: '设置' })).toBeInTheDocument();
     expect(screen.getByText('拖拽字段到行、列、度量和过滤条件后开始查询。')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/pivot/orders');
+  });
+
+  it('renders resolved field metadata from the store and hides empty state when layout has content', async () => {
+    await login('demo', '123456');
+
+    act(() => {
+      usePivotStore.getState().addFieldToZone('orders', '发货区域', 'rows');
+    });
+
+    renderRoute('/pivot/orders');
+
+    const rowsZone = await screen.findByRole('region', { name: '行' });
+
+    expect(within(rowsZone).getByText('发货区域')).toBeInTheDocument();
+    expect(within(rowsZone).getByText('D')).toBeInTheDocument();
+    expect(screen.queryByLabelText('查询结果空状态')).not.toBeInTheDocument();
   });
 });

@@ -1,13 +1,11 @@
-import { pivotSourceRegistry } from '../../data/orderModel';
-import type { PivotSourceId } from '../../data/orderModel';
+import type { PivotSourceModel } from '../../types/pivot';
 import FieldChip from './FieldChip';
 
 type FieldPanelProps = {
-  sourceId: PivotSourceId;
+  source: PivotSourceModel;
 };
 
-function FieldPanel({ sourceId }: FieldPanelProps) {
-  const source = pivotSourceRegistry[sourceId];
+function FieldPanel({ source }: FieldPanelProps) {
   const dimensionFields = source.fields.filter((field) => field.type === 'dimension');
   const measureFields = source.fields.filter((field) => field.type === 'measure');
 

@@ -6,8 +6,8 @@ import FieldPanel from '../components/pivot/FieldPanel';
 import LayoutZone from '../components/pivot/LayoutZone';
 import SettingsPanel from '../components/pivot/SettingsPanel';
 import Toolbar from '../components/pivot/Toolbar';
-import { pivotSourceRegistry, type PivotSourceId } from '../data/orderModel';
-import { getDataSourceById, isPivotSourceAvailable } from '../services/dataSources';
+import { getPivotSourceById, type PivotSourceId } from '../data/orderModel';
+import { isPivotSourceAvailable } from '../services/dataSources';
 import { usePivotStore } from '../store/pivotStore';
 
 const zoneDefinitions = [
@@ -19,8 +19,9 @@ const zoneDefinitions = [
 
 function PivotPage() {
   const { sourceId } = useParams();
+  const source = sourceId ? getPivotSourceById(sourceId) : null;
 
-  if (!sourceId || !isPivotSourceAvailable(sourceId) || !(sourceId in pivotSourceRegistry)) {
+  if (!sourceId || !source || !isPivotSourceAvailable(sourceId)) {
     return (
       <AppShell
         title="数据源不存在"
@@ -31,9 +32,16 @@ function PivotPage() {
   }
 
   const resolvedSourceId = sourceId as PivotSourceId;
-  const source = getDataSourceById(resolvedSourceId);
   const sourceState = usePivotStore((state) => state.getSourceState(resolvedSourceId));
   const resetLayout = usePivotStore((state) => state.resetLayout);
+  const hasLayoutContent = Object.values(sourceState.layout).some((zoneItems) => zoneItems.length > 0);
+
+  const resolvedZoneFields = zoneDefinitions.map((zone) => ({
+    ...zone,
+    fields: sourceState.layout[zone.key]
+      .map((fieldKey) => source.fields.find((field) => field.key === fieldKey) ?? null)
+      .filter((field) => field !== null),
+  }));
 
   return (
     <DragProvider>
@@ -44,27 +52,27 @@ function PivotPage() {
           <p>{source?.description}</p>
         </section>
         <Toolbar
-          sourceName={source?.name ?? resolvedSourceId}
+          sourceName={source.name}
           onReset={() => resetLayout(resolvedSourceId)}
         />
         <section className="pivot-page__workspace">
-          <FieldPanel sourceId={resolvedSourceId} />
+          <FieldPanel source={source} />
           <section className="pivot-panel pivot-layout-board" aria-labelledby="pivot-layout-board-title">
             <div className="pivot-panel__header">
               <h2 id="pivot-layout-board-title">布局区</h2>
               <p>拖拽行为会在后续任务中补齐，本任务先搭好分析壳层。</p>
             </div>
             <div className="pivot-layout-board__grid">
-              {zoneDefinitions.map((zone) => (
+              {resolvedZoneFields.map((zone) => (
                 <LayoutZone
                   key={zone.key}
+                  zone={zone.key}
                   title={zone.title}
-                  items={sourceState.layout[zone.key]}
-                  type={zone.type}
+                  fields={zone.fields}
                 />
               ))}
             </div>
-            <EmptyState />
+            <EmptyState visible={!hasLayoutContent} />
           </section>
           <SettingsPanel />
         </section>

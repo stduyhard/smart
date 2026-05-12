@@ -1,22 +1,23 @@
+import type { PivotField, PivotZone } from '../../types/pivot';
 import FieldChip from './FieldChip';
 
 type LayoutZoneProps = {
+  zone: PivotZone;
   title: string;
-  items: string[];
-  type: 'dimension' | 'measure';
+  fields: readonly PivotField[];
 };
 
-function LayoutZone({ title, items, type }: LayoutZoneProps) {
+function LayoutZone({ zone, title, fields }: LayoutZoneProps) {
   return (
-    <section className="pivot-layout-zone" aria-label={title}>
+    <section className="pivot-layout-zone" aria-label={title} data-zone={zone}>
       <div className="pivot-layout-zone__header">
         <h3>{title}</h3>
-        <span>{items.length} 项</span>
+        <span>{fields.length} 项</span>
       </div>
-      {items.length > 0 ? (
+      {fields.length > 0 ? (
         <div className="pivot-layout-zone__content">
-          {items.map((item) => (
-            <FieldChip key={item} label={item} type={type} />
+          {fields.map((field) => (
+            <FieldChip key={field.key} label={field.label} type={field.type} />
           ))}
         </div>
       ) : (
