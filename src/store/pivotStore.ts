@@ -1,15 +1,19 @@
 import { useSyncExternalStore } from 'react';
-import { orderFieldMap, type OrderFieldKey } from '../data/orderModel';
-import type { PivotLayout, PivotZone } from '../types/pivot';
+import {
+  pivotSourceRegistry,
+  type PivotFieldKey,
+  type PivotSourceId,
+} from '../data/orderModel';
+import type { PivotLayout, PivotSourceDefinition, PivotZone } from '../types/pivot';
 
-export interface PivotSourceState<FieldKey extends string = OrderFieldKey> {
+export interface PivotSourceState<FieldKey extends string = PivotFieldKey> {
   layout: PivotLayout<FieldKey>;
   expandedKeys: string[];
 }
 
 export interface PivotState {
   sourceStates: Record<string, PivotSourceState>;
-  addFieldToZone: (sourceId: string, field: OrderFieldKey, zone: PivotZone) => void;
+  addFieldToZone: (sourceId: PivotSourceId | string, field: PivotFieldKey | string, zone: PivotZone) => void;
   getSourceState: (sourceId: string) => PivotSourceState;
   resetLayout: (sourceId: string) => void;
   setExpandedKeys: (sourceId: string, expandedKeys: string[]) => void;
@@ -30,14 +34,14 @@ type PivotStoreHook = {
   subscribe: (listener: Listener) => () => void;
 };
 
-const emptyLayout: PivotLayout<OrderFieldKey> = {
+const emptyLayout: PivotLayout<PivotFieldKey> = {
   rows: [],
   columns: [],
   measures: [],
   filters: [],
 };
 
-function cloneLayout(layout: PivotLayout<OrderFieldKey>): PivotLayout<OrderFieldKey> {
+function cloneLayout(layout: PivotLayout<PivotFieldKey>): PivotLayout<PivotFieldKey> {
   return {
     rows: [...layout.rows],
     columns: [...layout.columns],
@@ -63,9 +67,9 @@ function ensureSourceState(
 }
 
 function removeFieldFromLayout(
-  layout: PivotLayout<OrderFieldKey>,
-  field: OrderFieldKey,
-): PivotLayout<OrderFieldKey> {
+  layout: PivotLayout<PivotFieldKey>,
+  field: PivotFieldKey | string,
+): PivotLayout<PivotFieldKey> {
   return {
     rows: layout.rows.filter((item) => item !== field),
     columns: layout.columns.filter((item) => item !== field),
@@ -74,18 +78,36 @@ function removeFieldFromLayout(
   };
 }
 
+function getSourceDefinition(sourceId: string): PivotSourceDefinition | null {
+  return pivotSourceRegistry[sourceId as PivotSourceId] ?? null;
+}
+
+function getFieldDefinition(sourceId: string, field: string) {
+  const sourceDefinition = getSourceDefinition(sourceId);
+
+  return sourceDefinition?.fields.find((sourceField) => sourceField.key === field) ?? null;
+}
+
 function createInitialState(): PivotState {
   return {
     sourceStates: {},
     addFieldToZone: (sourceId, field, zone) => {
       usePivotStore.setState((state) => {
-        const fieldConfig = orderFieldMap[field];
-        const allowedZones = fieldConfig.allowedZones as readonly PivotZone[];
         const currentSourceState = ensureSourceState(state.sourceStates, sourceId);
         const nextSourceStates = {
           ...state.sourceStates,
           [sourceId]: currentSourceState,
         };
+        const fieldConfig = getFieldDefinition(sourceId, field);
+
+        if (!fieldConfig) {
+          return {
+            sourceStates: nextSourceStates,
+          };
+        }
+
+        const allowedZones = fieldConfig.allowedZones as readonly PivotZone[];
+        const resolvedField = fieldConfig.key as PivotFieldKey;
 
         if (!allowedZones.includes(zone)) {
           return {
@@ -93,10 +115,10 @@ function createInitialState(): PivotState {
           };
         }
 
-        const nextLayout = removeFieldFromLayout(currentSourceState.layout, field);
-        const nextZoneItems = nextLayout[zone].includes(field)
+        const nextLayout = removeFieldFromLayout(currentSourceState.layout, resolvedField);
+        const nextZoneItems = nextLayout[zone].includes(resolvedField)
           ? nextLayout[zone]
-          : [...nextLayout[zone], field];
+          : [...nextLayout[zone], resolvedField];
 
         return {
           sourceStates: {

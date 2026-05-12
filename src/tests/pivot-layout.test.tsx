@@ -32,16 +32,31 @@ describe('usePivotStore', () => {
     act(() => {
       const store = usePivotStore.getState();
       store.addFieldToZone(ordersSourceId, '发货区域', 'rows');
-      store.addFieldToZone(customersSourceId, '订单年份', 'filters');
+      store.addFieldToZone(customersSourceId, '客户等级', 'filters');
     });
 
     expect(usePivotStore.getState().sourceStates[ordersSourceId]?.layout.rows).toEqual([
       '发货区域',
     ]);
     expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.filters).toEqual([
-      '订单年份',
+      '客户等级',
     ]);
     expect(usePivotStore.getState().sourceStates[ordersSourceId]?.layout.filters).toEqual([]);
+  });
+
+  it('validates fields against the active source schema instead of the orders model', () => {
+    act(() => {
+      const { addFieldToZone } = usePivotStore.getState();
+
+      addFieldToZone(customersSourceId, '客户等级', 'filters');
+      addFieldToZone(customersSourceId, '发货区域', 'filters');
+    });
+
+    expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.filters).toEqual([
+      '客户等级',
+    ]);
+    expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.rows).toEqual([]);
+    expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.columns).toEqual([]);
   });
 
   it('moves a dimension field between non-conflicting zones in the same source', () => {
@@ -72,7 +87,7 @@ describe('usePivotStore', () => {
       store.addFieldToZone(ordersSourceId, '发货区域', 'rows');
       store.addFieldToZone(ordersSourceId, '订单年份', 'columns');
       store.addFieldToZone(ordersSourceId, '销售额', 'measures');
-      store.addFieldToZone(customersSourceId, '省份', 'filters');
+      store.addFieldToZone(customersSourceId, '客户等级', 'filters');
       store.setExpandedKeys(ordersSourceId, ['华东']);
       store.setExpandedKeys(customersSourceId, ['华南']);
     });
@@ -89,7 +104,7 @@ describe('usePivotStore', () => {
     });
     expect(usePivotStore.getState().sourceStates[ordersSourceId]?.expandedKeys).toEqual([]);
     expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.filters).toEqual([
-      '省份',
+      '客户等级',
     ]);
     expect(usePivotStore.getState().sourceStates[customersSourceId]?.expandedKeys).toEqual([
       '华南',

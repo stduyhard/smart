@@ -19,3 +19,15 @@ export interface PivotLayout<FieldKey extends string = string> {
   measures: FieldKey[];
   filters: FieldKey[];
 }
+
+export interface PivotSourceDefinition<
+  SourceId extends string = string,
+  FieldKey extends string = string,
+  Row extends object = object,
+> {
+  id: SourceId;
+  name: string;
+  description: string;
+  fields: readonly PivotField<FieldKey>[];
+  rows: Row[];
+}

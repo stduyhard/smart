@@ -1,4 +1,4 @@
-import type { PivotField } from '../types/pivot';
+import type { PivotField, PivotSourceDefinition } from '../types/pivot';
 
 export interface OrderRow {
   发货区域: string;
@@ -53,6 +53,44 @@ export const orderFields = [
 export type OrderField = (typeof orderFields)[number];
 export type OrderDimensionFieldKey = Extract<OrderField, { type: 'dimension' }>['key'];
 export type OrderMeasureFieldKey = Extract<OrderField, { type: 'measure' }>['key'];
+
+export interface CustomerRow {
+  客户地区: string;
+  客户等级: string;
+  行业: string;
+  客户数: number;
+}
+
+export type CustomerFieldKey = keyof CustomerRow & string;
+
+export const customerFields = [
+  {
+    key: '客户地区',
+    label: '客户地区',
+    type: 'dimension',
+    allowedZones: ['rows', 'columns', 'filters'],
+  },
+  {
+    key: '客户等级',
+    label: '客户等级',
+    type: 'dimension',
+    allowedZones: ['rows', 'columns', 'filters'],
+  },
+  {
+    key: '行业',
+    label: '行业',
+    type: 'dimension',
+    allowedZones: ['rows', 'columns', 'filters'],
+  },
+  {
+    key: '客户数',
+    label: '客户数',
+    type: 'measure',
+    allowedZones: ['measures'],
+  },
+] as const satisfies readonly PivotField<CustomerFieldKey>[];
+
+export type CustomerField = (typeof customerFields)[number];
 
 export const orderRows: OrderRow[] = [
   {
@@ -111,4 +149,36 @@ export const orderModel = {
   description: '适合从订单、销售额和区域维度进入透视分析。',
   fields: orderFields,
   rows: orderRows,
-};
+} as const satisfies PivotSourceDefinition<'orders', OrderFieldKey, OrderRow>;
+
+export const customerRows: CustomerRow[] = [
+  {
+    客户地区: '华东',
+    客户等级: 'VIP',
+    行业: '制造',
+    客户数: 18,
+  },
+  {
+    客户地区: '华南',
+    客户等级: '标准',
+    行业: '零售',
+    客户数: 24,
+  },
+];
+
+export const customerModel = {
+  id: 'customers',
+  name: '客户模型',
+  description: '用于验证不同数据源的字段约束和布局规则。',
+  fields: customerFields,
+  rows: customerRows,
+} as const satisfies PivotSourceDefinition<'customers', CustomerFieldKey, CustomerRow>;
+
+export const pivotSourceRegistry = {
+  [orderModel.id]: orderModel,
+  [customerModel.id]: customerModel,
+} as const;
+
+export type PivotSourceRegistry = typeof pivotSourceRegistry;
+export type PivotSourceId = keyof PivotSourceRegistry & string;
+export type PivotFieldKey = PivotSourceRegistry[PivotSourceId]['fields'][number]['key'];
