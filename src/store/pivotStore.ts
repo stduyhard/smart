@@ -9,6 +9,7 @@ import type { PivotLayout, PivotSourceDefinition, PivotZone } from '../types/piv
 export interface PivotSourceState<FieldKey extends string = PivotFieldKey> {
   layout: PivotLayout<FieldKey>;
   expandedKeys: string[];
+  filterValues: Record<string, string[]>;
 }
 
 export interface PivotState {
@@ -18,6 +19,8 @@ export interface PivotState {
   isQueryReady: (sourceId: string) => boolean;
   resetLayout: (sourceId: string) => void;
   setExpandedKeys: (sourceId: string, expandedKeys: string[]) => void;
+  setFilterValues: (sourceId: string, field: string, values: string[]) => void;
+  getFilterValues: (sourceId: string) => Record<string, string[]>;
 }
 
 type Listener = () => void;
@@ -55,6 +58,7 @@ function createEmptySourceState(): PivotSourceState {
   return {
     layout: cloneLayout(emptyLayout),
     expandedKeys: [],
+    filterValues: {},
   };
 }
 
@@ -172,6 +176,28 @@ function createInitialState(): PivotState {
           },
         };
       });
+    },
+    setFilterValues: (sourceId, field, values) => {
+      usePivotStore.setState((state) => {
+        const currentSourceState = ensureSourceState(state.sourceStates, sourceId);
+
+        return {
+          sourceStates: {
+            ...state.sourceStates,
+            [sourceId]: {
+              ...currentSourceState,
+              filterValues: {
+                ...currentSourceState.filterValues,
+                [field]: [...values],
+              },
+            },
+          },
+        };
+      });
+    },
+    getFilterValues: (sourceId) => {
+      const sourceState = usePivotStore.getState().getSourceState(sourceId);
+      return sourceState.filterValues;
     },
   };
 }

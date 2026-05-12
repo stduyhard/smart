@@ -158,4 +158,29 @@ describe('usePivotStore', () => {
     expect(orderRows[0]).not.toHaveProperty('orderPeriod');
     expect(orderRows[0]).not.toHaveProperty('salesAmount');
   });
+
+  it('sets and retrieves filter values per source', () => {
+    act(() => {
+      usePivotStore.getState().setFilterValues(ordersSourceId, '发货区域', ['华东', '华南']);
+    });
+
+    expect(usePivotStore.getState().getFilterValues(ordersSourceId)).toEqual({
+      '发货区域': ['华东', '华南'],
+    });
+
+    // Other sources unaffected
+    expect(usePivotStore.getState().getFilterValues(customersSourceId)).toEqual({});
+  });
+
+  it('resets filter values when layout is reset', () => {
+    act(() => {
+      usePivotStore.getState().setFilterValues(ordersSourceId, '发货区域', ['华东']);
+    });
+
+    act(() => {
+      usePivotStore.getState().resetLayout(ordersSourceId);
+    });
+
+    expect(usePivotStore.getState().getFilterValues(ordersSourceId)).toEqual({});
+  });
 });

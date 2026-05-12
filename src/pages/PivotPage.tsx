@@ -4,13 +4,17 @@ import AppShell from '../components/layout/AppShell';
 import DragProvider from '../components/pivot/DragProvider';
 import EmptyState from '../components/pivot/EmptyState';
 import FieldPanel from '../components/pivot/FieldPanel';
+import FilterPanel from '../components/pivot/FilterPanel';
 import LayoutZone from '../components/pivot/LayoutZone';
 import LoadingState from '../components/pivot/LoadingState';
+import ResultTable from '../components/pivot/ResultTable';
 import SettingsPanel from '../components/pivot/SettingsPanel';
+import type { PivotResult } from '../utils/pivotEngine';
 import { getPivotSourceById, type PivotSourceId } from '../data/orderModel';
 import { isPivotSourceAvailable } from '../services/dataSources';
 import { executePivotQuery } from '../services/pivot';
 import { usePivotStore } from '../store/pivotStore';
+import { exportPivotToExcel } from '../utils/exportExcel';
 
 const zoneDefinitions = [
   { key: 'rows', title: '行', type: 'dimension' },
@@ -23,6 +27,7 @@ function PivotPage() {
   const { sourceId } = useParams();
   const source = sourceId ? getPivotSourceById(sourceId) : null;
   const [isQueryRunning, setIsQueryRunning] = useState(false);
+  const [queryResult, setQueryResult] = useState<PivotResult | null>(null);
 
   if (!sourceId || !source || !isPivotSourceAvailable(sourceId)) {
     return (
@@ -40,6 +45,8 @@ function PivotPage() {
   const addFieldToZone = usePivotStore((state) => state.addFieldToZone);
   const isQueryReady = usePivotStore((state) => state.isQueryReady(resolvedSourceId));
   const hasLayoutContent = Object.values(sourceState.layout).some((zoneItems) => zoneItems.length > 0);
+  const setFilterValues = usePivotStore((state) => state.setFilterValues);
+  const filterValues = sourceState.filterValues;
 
   const resolvedZoneFields = zoneDefinitions.map((zone) => ({
     ...zone,
@@ -56,10 +63,12 @@ function PivotPage() {
     setIsQueryRunning(true);
 
     try {
-      await executePivotQuery({
+      const response = await executePivotQuery({
         sourceId: resolvedSourceId,
         layout: sourceState.layout,
+        filters: sourceState.filterValues,
       });
+      setQueryResult(response.result);
     } finally {
       setIsQueryRunning(false);
     }
@@ -85,6 +94,9 @@ function PivotPage() {
             <button type="button" onClick={handleExecuteQuery} disabled={!isQueryReady || isQueryRunning}>
               {isQueryRunning ? '执行查询中...' : '执行查询'}
             </button>
+            <button type="button" onClick={() => queryResult && exportPivotToExcel(queryResult, sourceState.layout.measures[0] ?? '')} disabled={!queryResult}>
+              导出 Excel
+            </button>
           </div>
         </header>
         <section className="pivot-page__workspace">
@@ -109,9 +121,23 @@ function PivotPage() {
             </div>
             {isQueryRunning ? <LoadingState /> : null}
             <EmptyState visible={!hasLayoutContent} />
+            <FilterPanel
+              source={source}
+              filterFields={sourceState.layout.filters}
+              filterValues={filterValues}
+              onChange={(field, values) => setFilterValues(resolvedSourceId, field, values)}
+            />
           </section>
           <SettingsPanel />
         </section>
+        {queryResult ? (
+          <section className="pivot-page__results" aria-label="查询结果">
+            <ResultTable
+              result={queryResult}
+              measureLabel={sourceState.layout.measures[0] ?? ''}
+            />
+          </section>
+        ) : null}
       </main>
     </DragProvider>
   );
