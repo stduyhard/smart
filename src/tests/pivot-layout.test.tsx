@@ -59,6 +59,17 @@ describe('usePivotStore', () => {
     expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.columns).toEqual([]);
   });
 
+  it('honors source-specific allowedZones instead of a shared dimension rule table', () => {
+    act(() => {
+      const { addFieldToZone } = usePivotStore.getState();
+
+      addFieldToZone(customersSourceId, '客户等级', 'rows');
+    });
+
+    expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.rows).toEqual([]);
+    expect(usePivotStore.getState().sourceStates[customersSourceId]?.layout.filters).toEqual([]);
+  });
+
   it('moves a dimension field between non-conflicting zones in the same source', () => {
     act(() => {
       const store = usePivotStore.getState();

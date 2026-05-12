@@ -74,7 +74,7 @@ export const customerFields = [
     key: '客户等级',
     label: '客户等级',
     type: 'dimension',
-    allowedZones: ['rows', 'columns', 'filters'],
+    allowedZones: ['filters'],
   },
   {
     key: '行业',
