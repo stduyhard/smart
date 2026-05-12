@@ -9,14 +9,50 @@ export interface OrderRow {
   销售量: number;
 }
 
-export const orderFields: PivotField[] = [
-  { key: '发货区域', label: '发货区域', type: 'dimension' },
-  { key: '省份', label: '省份', type: 'dimension' },
-  { key: '发货城市', label: '发货城市', type: 'dimension' },
-  { key: '订单年份', label: '订单年份', type: 'dimension' },
-  { key: '销售额', label: '销售额', type: 'measure' },
-  { key: '销售量', label: '销售量', type: 'measure' },
-];
+export type OrderFieldKey = keyof OrderRow & string;
+
+export const orderFields = [
+  {
+    key: '发货区域',
+    label: '发货区域',
+    type: 'dimension',
+    allowedZones: ['rows', 'columns', 'filters'],
+  },
+  {
+    key: '省份',
+    label: '省份',
+    type: 'dimension',
+    allowedZones: ['rows', 'columns', 'filters'],
+  },
+  {
+    key: '发货城市',
+    label: '发货城市',
+    type: 'dimension',
+    allowedZones: ['rows', 'columns', 'filters'],
+  },
+  {
+    key: '订单年份',
+    label: '订单年份',
+    type: 'dimension',
+    allowedZones: ['rows', 'columns', 'filters'],
+  },
+  {
+    key: '销售额',
+    label: '销售额',
+    type: 'measure',
+    allowedZones: ['measures'],
+  },
+  {
+    key: '销售量',
+    label: '销售量',
+    type: 'measure',
+    allowedZones: ['measures'],
+  },
+] as const satisfies readonly PivotField<OrderFieldKey>[];
+
+export type OrderField = (typeof orderFields)[number];
+export type OrderDimensionFieldKey = Extract<OrderField, { type: 'dimension' }>['key'];
+export type OrderMeasureFieldKey = Extract<OrderField, { type: 'measure' }>['key'];
 
 export const orderRows: OrderRow[] = [
   {
@@ -60,6 +96,14 @@ export const orderRows: OrderRow[] = [
     销售量: 13,
   },
 ];
+
+export const orderFieldMap: Record<OrderFieldKey, OrderField> = orderFields.reduce(
+  (fieldMap, field) => {
+    fieldMap[field.key] = field;
+    return fieldMap;
+  },
+  {} as Record<OrderFieldKey, OrderField>,
+);
 
 export const orderModel = {
   id: 'orders',

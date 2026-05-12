@@ -1,11 +1,18 @@
 import { useSyncExternalStore } from 'react';
+import { orderFieldMap, type OrderFieldKey } from '../data/orderModel';
 import type { PivotLayout, PivotZone } from '../types/pivot';
 
-export interface PivotState {
-  layout: PivotLayout;
+export interface PivotSourceState<FieldKey extends string = OrderFieldKey> {
+  layout: PivotLayout<FieldKey>;
   expandedKeys: string[];
-  addFieldToZone: (field: string, zone: PivotZone) => void;
-  resetLayout: () => void;
+}
+
+export interface PivotState {
+  sourceStates: Record<string, PivotSourceState>;
+  addFieldToZone: (sourceId: string, field: OrderFieldKey, zone: PivotZone) => void;
+  getSourceState: (sourceId: string) => PivotSourceState;
+  resetLayout: (sourceId: string) => void;
+  setExpandedKeys: (sourceId: string, expandedKeys: string[]) => void;
 }
 
 type Listener = () => void;
@@ -23,14 +30,14 @@ type PivotStoreHook = {
   subscribe: (listener: Listener) => () => void;
 };
 
-const emptyLayout: PivotLayout = {
+const emptyLayout: PivotLayout<OrderFieldKey> = {
   rows: [],
   columns: [],
   measures: [],
   filters: [],
 };
 
-function cloneLayout(layout: PivotLayout): PivotLayout {
+function cloneLayout(layout: PivotLayout<OrderFieldKey>): PivotLayout<OrderFieldKey> {
   return {
     rows: [...layout.rows],
     columns: [...layout.columns],
@@ -39,28 +46,96 @@ function cloneLayout(layout: PivotLayout): PivotLayout {
   };
 }
 
-function createInitialState(): PivotState {
+function createEmptySourceState(): PivotSourceState {
   return {
     layout: cloneLayout(emptyLayout),
     expandedKeys: [],
-    addFieldToZone: (field, zone) => {
+  };
+}
+
+const defaultSourceState: PivotSourceState = createEmptySourceState();
+
+function ensureSourceState(
+  sourceStates: Record<string, PivotSourceState>,
+  sourceId: string,
+): PivotSourceState {
+  return sourceStates[sourceId] ?? createEmptySourceState();
+}
+
+function removeFieldFromLayout(
+  layout: PivotLayout<OrderFieldKey>,
+  field: OrderFieldKey,
+): PivotLayout<OrderFieldKey> {
+  return {
+    rows: layout.rows.filter((item) => item !== field),
+    columns: layout.columns.filter((item) => item !== field),
+    measures: layout.measures.filter((item) => item !== field),
+    filters: layout.filters.filter((item) => item !== field),
+  };
+}
+
+function createInitialState(): PivotState {
+  return {
+    sourceStates: {},
+    addFieldToZone: (sourceId, field, zone) => {
       usePivotStore.setState((state) => {
-        const nextZone = state.layout[zone].includes(field)
-          ? state.layout[zone]
-          : [...state.layout[zone], field];
+        const fieldConfig = orderFieldMap[field];
+        const allowedZones = fieldConfig.allowedZones as readonly PivotZone[];
+        const currentSourceState = ensureSourceState(state.sourceStates, sourceId);
+        const nextSourceStates = {
+          ...state.sourceStates,
+          [sourceId]: currentSourceState,
+        };
+
+        if (!allowedZones.includes(zone)) {
+          return {
+            sourceStates: nextSourceStates,
+          };
+        }
+
+        const nextLayout = removeFieldFromLayout(currentSourceState.layout, field);
+        const nextZoneItems = nextLayout[zone].includes(field)
+          ? nextLayout[zone]
+          : [...nextLayout[zone], field];
 
         return {
-          layout: {
-            ...state.layout,
-            [zone]: nextZone,
+          sourceStates: {
+            ...state.sourceStates,
+            [sourceId]: {
+              ...currentSourceState,
+              layout: {
+                ...nextLayout,
+                [zone]: nextZoneItems,
+              },
+            },
           },
         };
       });
     },
-    resetLayout: () => {
+    getSourceState: (sourceId) => {
+      return usePivotStore.getState().sourceStates[sourceId] ?? defaultSourceState;
+    },
+    resetLayout: (sourceId) => {
       usePivotStore.setState({
-        layout: cloneLayout(emptyLayout),
-        expandedKeys: [],
+        sourceStates: {
+          ...usePivotStore.getState().sourceStates,
+          [sourceId]: createEmptySourceState(),
+        },
+      });
+    },
+    setExpandedKeys: (sourceId, expandedKeys) => {
+      usePivotStore.setState((state) => {
+        const currentSourceState = ensureSourceState(state.sourceStates, sourceId);
+
+        return {
+          sourceStates: {
+            ...state.sourceStates,
+            [sourceId]: {
+              ...currentSourceState,
+              expandedKeys: [...expandedKeys],
+            },
+          },
+        };
       });
     },
   };
