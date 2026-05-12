@@ -49,3 +49,244 @@ h1 {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
 }
+
+button,
+a {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.pivot-drag-provider {
+  min-height: 100vh;
+}
+
+.pivot-page {
+  min-height: 100vh;
+  padding: 24px;
+  color: #e9f4f8;
+}
+
+.pivot-page__hero {
+  margin-bottom: 20px;
+}
+
+.pivot-page__hero p:last-child {
+  margin: 8px 0 0;
+  color: #b3cad5;
+}
+
+.pivot-toolbar,
+.pivot-panel,
+.pivot-empty-state {
+  border: 1px solid rgba(160, 201, 220, 0.2);
+  background: rgba(9, 19, 27, 0.78);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.22);
+}
+
+.pivot-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-radius: 20px;
+}
+
+.pivot-toolbar__eyebrow {
+  margin: 0 0 4px;
+  color: #8eb1c4;
+  font-size: 0.875rem;
+}
+
+.pivot-toolbar__actions {
+  display: flex;
+  gap: 12px;
+}
+
+.pivot-toolbar button {
+  padding: 10px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: #73b9d5;
+  color: #09202b;
+  font-weight: 600;
+}
+
+.pivot-toolbar button[disabled] {
+  cursor: not-allowed;
+  background: rgba(115, 185, 213, 0.4);
+  color: rgba(9, 32, 43, 0.78);
+}
+
+.pivot-page__workspace {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr) minmax(220px, 280px);
+  gap: 20px;
+  align-items: start;
+}
+
+.pivot-panel {
+  border-radius: 24px;
+  padding: 20px;
+}
+
+.pivot-panel__header {
+  margin-bottom: 16px;
+}
+
+.pivot-panel__header h2,
+.pivot-panel__header p,
+.pivot-field-panel__group h3,
+.pivot-empty-state h2,
+.pivot-empty-state p,
+.pivot-layout-zone__header h3,
+.pivot-layout-zone__placeholder,
+.pivot-settings-panel__list,
+.pivot-settings-panel__list dt,
+.pivot-settings-panel__list dd {
+  margin: 0;
+}
+
+.pivot-panel__header p {
+  margin-top: 8px;
+  color: #b3cad5;
+}
+
+.pivot-field-panel,
+.pivot-settings-panel {
+  position: sticky;
+  top: 24px;
+}
+
+.pivot-field-panel__group + .pivot-field-panel__group {
+  margin-top: 20px;
+}
+
+.pivot-field-panel__group h3 {
+  margin-bottom: 10px;
+  color: #8eb1c4;
+}
+
+.pivot-field-panel__chips,
+.pivot-layout-zone__content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pivot-field-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(160, 201, 220, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pivot-field-chip--measure {
+  background: rgba(115, 185, 213, 0.16);
+}
+
+.pivot-field-chip__type {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(115, 185, 213, 0.22);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pivot-layout-board__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.pivot-layout-zone {
+  min-height: 140px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px dashed rgba(142, 177, 196, 0.35);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.pivot-layout-zone__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.pivot-layout-zone__header span,
+.pivot-layout-zone__placeholder {
+  color: #9bb7c6;
+}
+
+.pivot-empty-state {
+  margin-top: 16px;
+  padding: 20px;
+  border-radius: 18px;
+}
+
+.pivot-empty-state p {
+  margin-top: 8px;
+  color: #b3cad5;
+}
+
+.pivot-settings-panel__list {
+  display: grid;
+  gap: 14px;
+}
+
+.pivot-settings-panel__list div {
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.pivot-settings-panel__list dt {
+  color: #8eb1c4;
+}
+
+.pivot-settings-panel__list dd {
+  margin-top: 6px;
+}
+
+@media (max-width: 1080px) {
+  .pivot-page__workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .pivot-field-panel,
+  .pivot-settings-panel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .pivot-page {
+    padding: 16px;
+  }
+
+  .pivot-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pivot-toolbar__actions,
+  .pivot-layout-board__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .pivot-toolbar__actions {
+    display: grid;
+  }
+}
