@@ -53,9 +53,8 @@ describe('DataSourcePage', () => {
     const router = renderRoute('/pivot/customers');
 
     expect(
-      await screen.findByRole('heading', { level: 1, name: '数据源不存在' }),
+      await screen.findByRole('heading', { level: 1, name: '透视分析: customers' }),
     ).toBeInTheDocument();
-    expect(screen.getByText('请返回数据源列表并选择有效的业务模型。')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/pivot/customers');
   });
 });

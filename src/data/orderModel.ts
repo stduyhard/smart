@@ -171,7 +171,7 @@ export const customerModel = {
   id: 'customers',
   name: '客户模型',
   description: '展示用数据源，后续任务会补充分析入口。',
-  selectable: false,
+  selectable: true,
   fields: customerFields,
   rows: customerRows,
 } as const satisfies PivotSourceModel<'customers', CustomerFieldKey, CustomerRow>;
