@@ -46,4 +46,16 @@ describe('DataSourcePage', () => {
     expect(screen.getByText('请返回数据源列表并选择有效的业务模型。')).toBeInTheDocument();
     expect(router.state.location.pathname).toBe('/pivot/unknown-source');
   });
+
+  it('rejects a known but non-selectable source route', async () => {
+    await login('demo', '123456');
+
+    const router = renderRoute('/pivot/customers');
+
+    expect(
+      await screen.findByRole('heading', { level: 1, name: '数据源不存在' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('请返回数据源列表并选择有效的业务模型。')).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/pivot/customers');
+  });
 });
