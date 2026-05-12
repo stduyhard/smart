@@ -1,12 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/layout/AppShell';
 import { login } from '../services/auth';
 
-type LoginPageProps = {
-  onSuccess: () => void;
-};
-
-function LoginPage({ onSuccess }: LoginPageProps) {
+function LoginPage() {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -19,7 +17,7 @@ function LoginPage({ onSuccess }: LoginPageProps) {
 
     try {
       await login(username, password);
-      onSuccess();
+      navigate('/sources', { replace: true });
     } catch (error) {
       if (error instanceof Error) {
         setErrorMessage(error.message);

@@ -1,15 +1,13 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import AppShell from '../components/layout/AppShell';
 import {
   listDataSources,
   type DataSource,
 } from '../services/dataSources';
 
-type DataSourcePageProps = {
-  onSelectSource: (sourceId: string) => void;
-};
-
-function DataSourcePage({ onSelectSource }: DataSourcePageProps) {
+function DataSourcePage() {
+  const navigate = useNavigate();
   const [dataSources, setDataSources] = useState<DataSource[]>([]);
 
   useEffect(() => {
@@ -44,7 +42,7 @@ function DataSourcePage({ onSelectSource }: DataSourcePageProps) {
               <button
                 type="button"
                 aria-label={`进入${source.name}分析`}
-                onClick={() => onSelectSource(source.id)}
+                onClick={() => navigate(`/pivot/${source.id}`)}
               >
                 进入分析
               </button>

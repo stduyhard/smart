@@ -23,3 +23,12 @@ const dataSources: DataSource[] = [
 export async function listDataSources(): Promise<DataSource[]> {
   return dataSources;
 }
+
+export function getDataSourceById(sourceId: string): DataSource | null {
+  return dataSources.find((source) => source.id === sourceId) ?? null;
+}
+
+export function isPivotSourceAvailable(sourceId: string): boolean {
+  const source = getDataSourceById(sourceId);
+  return Boolean(source?.selectable);
+}
