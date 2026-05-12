@@ -11,6 +11,7 @@ import ResultTable from '../components/pivot/ResultTable';
 import SettingsPanel from '../components/pivot/SettingsPanel';
 import type { PivotResult } from '../utils/pivotEngine';
 import { getPivotSourceById, type PivotSourceId } from '../data/orderModel';
+import type { DragEndEvent } from '@dnd-kit/core';
 import { isPivotSourceAvailable } from '../services/dataSources';
 import { executePivotQuery } from '../services/pivot';
 import { usePivotStore } from '../store/pivotStore';
@@ -76,7 +77,18 @@ function PivotPage() {
   }
 
   return (
-    <DragProvider>
+    <DragProvider
+      onDragEnd={(event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over) return;
+
+        const fieldLabel = active.data.current?.label as string;
+        const targetZone = over.data.current?.zone as string;
+        if (!fieldLabel || !targetZone) return;
+
+        addFieldToZone(resolvedSourceId, fieldLabel, targetZone as 'rows' | 'columns' | 'measures' | 'filters');
+      }}
+    >
       <main className="pivot-page">
         <section className="pivot-page__hero">
           <p className="eyebrow">Smartbi Pivot</p>

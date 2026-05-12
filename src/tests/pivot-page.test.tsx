@@ -140,13 +140,13 @@ describe('PivotPage', () => {
       },
       filters: {},
     });
-    expect(screen.getByRole('status')).toHaveTextContent('正在执行透视查询...');
+    expect(screen.getByText('正在执行透视查询...')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '执行查询中...' })).toBeDisabled();
 
     resolveQuery();
 
     expect(await screen.findByRole('button', { name: '执行查询' })).toBeEnabled();
-    expect(screen.queryByRole('status')).not.toBeInTheDocument();
+    expect(screen.queryByText('正在执行透视查询...')).not.toBeInTheDocument();
   });
 
   it('renders result table after query completes', async () => {
@@ -215,6 +215,17 @@ describe('PivotPage', () => {
     // Expand toggle buttons should exist on parent rows
     const toggleButtons = screen.queryAllByRole('button', { name: '[+]' });
     expect(toggleButtons.length).toBeGreaterThan(0);
+  });
+
+  it('renders DndContext for drag-and-drop', async () => {
+    await login('demo', '123456');
+
+    renderRoute('/pivot/orders');
+
+    await screen.findByRole('region', { name: '行' });
+
+    // DndContext should be active (adds accessibility description)
+    expect(screen.getByText(/To pick up a draggable item/)).toBeInTheDocument();
   });
 
   it('exports pivot result to Excel', async () => {

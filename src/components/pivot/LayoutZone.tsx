@@ -1,3 +1,4 @@
+import { useDroppable } from '@dnd-kit/core';
 import type { PivotField, PivotZone } from '../../types/pivot';
 import FieldChip from './FieldChip';
 
@@ -8,8 +9,18 @@ type LayoutZoneProps = {
 };
 
 function LayoutZone({ zone, title, fields }: LayoutZoneProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `zone-${zone}`,
+    data: { zone },
+  });
+
   return (
-    <section className="pivot-layout-zone" aria-label={title} data-zone={zone}>
+    <section
+      ref={setNodeRef}
+      className={`pivot-layout-zone${isOver ? ' pivot-layout-zone--over' : ''}`}
+      aria-label={title}
+      data-zone={zone}
+    >
       <div className="pivot-layout-zone__header">
         <h3>{title}</h3>
         <span>{fields.length} 项</span>
